@@ -1,22 +1,24 @@
 from django.contrib import admin
-from .models import salle
-import csv
+from .models import Matiere
 from django.http import HttpResponse
+import csv
 
-class SalleAdmin(admin.ModelAdmin):
+class MatiereAdmin(admin.ModelAdmin):
+    # ...
+
     def export_to_csv(self, request, queryset):
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="salles.csv"'
+        response['Content-Disposition'] = 'attachment; filename="matieres.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['Nom', 'Nombre de places'])
+        writer.writerow(['Nom Matiere', 'Code', 'Niveau', 'Nb Eleve', 'Nb Seance', 'Optionnel'])
 
-        for salle in queryset:
-            writer.writerow([salle.name, salle.nombre_place])
+        for matiere in queryset:
+            writer.writerow([matiere.nom_matiere, matiere.code, matiere.niveau, matiere.nb_eleve, matiere.nb_seance, matiere.optionnel])
 
         return response
 
-    export_to_csv.short_description = "Exporter vers CSV"
+    export_to_csv.short_description = 'Exporter vers CSV'
 
     def import_from_csv(self, request, queryset):
         if 'csv_file' in request.FILES:
@@ -25,16 +27,24 @@ class SalleAdmin(admin.ModelAdmin):
             reader = csv.DictReader(decoded_file)
 
             for row in reader:
-                name = row['Nom']
-                nombre_place = int(row['Nombre de places'])
-                salle.objects.create(name=name, nombre_place=nombre_place)
+                nom_matiere = row['Nom Matiere']
+                code = row['Code']
+                niveau = int(row['Niveau'])
+                nb_eleve = int(row['Nb Eleve'])
+                nb_seance = int(row['Nb Seance'])
+                optionnel = bool(row['Optionnel'])
+
+                Matiere.objects.create(nom_matiere=nom_matiere, code=code, niveau=niveau, nb_eleve=nb_eleve, nb_seance=nb_seance, optionnel=optionnel)
 
             self.message_user(request, "Importation réussie.")
         else:
             self.message_user(request, "Aucun fichier sélectionné.")
 
-    import_from_csv.short_description = "Importer depuis CSV"
+    export_to_csv.short_description = 'Exporter vers CSV'
+    import_from_csv.short_description = 'Importer depuis CSV'
 
     actions = [export_to_csv, import_from_csv]
 
-admin.site.register(salle, SalleAdmin)
+admin.site.register(Matiere, MatiereAdmin)
+    
+    
